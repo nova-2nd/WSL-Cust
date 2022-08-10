@@ -1,0 +1,74 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+  - name: Add keys to authorized_keys
+    ansible.posix.authorized_key:
+      user: vagrant
+      state: present
+      key: "{{ lookup('url', 'https://github.com/nova-2nd.keys', split_lines=False) }}"
+  - name: Upload files
+    copy:
+      src: ./upload-files/
+      dest: /
+      directory_mode:
+
+  - name: Add Hashicorp apt-key
+    apt_key:
+      url: https://apt.releases.hashicorp.com/gpg
+      state: present
+  - name: Add Helm apt-key
+    apt_key:
+      url: https://baltocdn.com/helm/signing.asc
+      state: present
+  - name: Add Hashicorp repo
+    apt_repository:
+      repo: 'deb [arch=amd64] https://apt.releases.hashicorp.com bullseye main' 
+      state: present 
+      filename: hashicorp
+  - name: Add Helm repo
+    apt_repository:
+      repo: 'deb [arch=amd64] https://baltocdn.com/helm/stable/debian/ all main' 
+      state: present 
+      filename: helm
+
+  - name: Update packages
+    apt:
+      name: "*"
+      state: latest
+      update_cache: yes
+  - name: Install packages
+    apt:
+      name:
+        - python3-pip
+        - jq
+        - terraform
+        - kubernetes-client
+        - helm
+        - mc
+        - htop
+  - name: Install pip package aws-cli
+    ansible.builtin.pip:
+      name: awscli
+
+  - name: Get latest aws-vault URL
+    shell: curl -s https://api.github.com/repos/99designs/aws-vault/releases/latest | jq ".assets[] | select(.name | test(\"aws-vault-linux-amd64\")) | .browser_download_url"
+    args:
+      warn: false
+    register: awsvault_latest_url
+    changed_when: false
+    failed_when: awsvault_latest_url.stdout_lines | length == 0
+    ignore_errors: yes
+  - name: Install/Update aws-vault
+    ansible.builtin.get_url:
+      url: "{{ awsvault_latest_url.stdout_lines[0] | regex_replace('^\"|\"$') }}"
+      dest: /usr/local/bin/aws-vault
+      mode: 0755
+    when: awsvault_latest_url.failed != True
+
+  - name: Install eksctl
+    ansible.builtin.unarchive:
+      src: https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_Linux_amd64.tar.gz
+      dest: /usr/local/bin
+      remote_src: yes
+      mode: 0755

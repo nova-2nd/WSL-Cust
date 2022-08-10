@@ -1,0 +1,44 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Configure login.defs
+    ansible.builtin.lineinfile:
+      path: /etc/login.defs
+      regexp: '^UMASK'
+      line: UMASK 027
+  - name: Add user
+    ansible.builtin.user:
+      name: xxxx
+      uid: 1000
+      groups: adm,cdrom,sudo,dip,plugdev
+      shell: /bin/bash
+      password: $6$kQOhM/JiCxB14uDr$WU1cbFKgX6G.fvTF.cIdfpbvg9T65/qruv3uHBIJc6NPn9KfvKDQWa6ycKXu38Oj/syYnKwpPPZwQottzoUV11
+  - name: Update wsl.conf
+    community.general.ini_file:
+      path: /etc/wsl.conf
+      section: user
+      option: default
+      value: xxxx
+
+  - name: Update packages
+    apt:
+      name: "*"
+      state: latest
+      update_cache: yes
+  - name: Install packages
+    apt:
+      name:
+        - mc
+        - htop
+        - man-db
+
+  - name: Update root shell
+    ansible.builtin.user:
+      name: root
+      shell: /bin/bash
+    register: root_shell
+  - name: Touch hook for reboot
+    ansible.builtin.file:
+      path: /root/ansible.reboot
+      state: touch
+    when: root_shell.changed

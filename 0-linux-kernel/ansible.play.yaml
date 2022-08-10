@@ -1,0 +1,29 @@
+---
+- hosts: localhost
+  become: yes
+  tasks:
+  - name: Update packages
+    apt:
+      name: "*"
+      state: latest
+      update_cache: yes
+  - name: Install packages
+    apt:
+      name:
+        - autoconf
+        - bison
+        - build-essential
+        - flex
+        - libelf-dev
+        - libncurses-dev
+        - libssl-dev
+        - libtool
+        - libudev-dev
+        - bc
+        - git
+        - dwarves
+  - name: Get WSL kernel source
+    ansible.builtin.git:
+      repo: 'https://github.com/microsoft/WSL2-Linux-Kernel.git'
+      dest: /home/xxxx/kernel
+      
