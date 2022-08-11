@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-cd /home/xxxx/kernel
+cd /usr/src/5.15.57.1-microsoft-standard-WSL2
 
-make clean
-make mrproper
+sudo make clean
+sudo make mrproper
 
-cp Microsoft/config-wsl .config
+#sudo cp Microsoft/config-wsl .config
 
-sed -i 's/CONFIG_LOCALVERSION="-microsoft-standard-WSL2"/CONFIG_LOCALVERSION="-microsoft-homebrew-WSL2"/g' .config
+#sudo sed -i 's/CONFIG_LOCALVERSION="-microsoft-standard-WSL2"/CONFIG_LOCALVERSION="-microsoft-homebrew-WSL2"/g' .config
 
-make -j $(nproc)
+sudo make LOCALVERSION= KCONFIG_CONFIG=/mnt/c/WSL-Cust/0-linux-kernel/config-wsl -j $(nproc) | tee /mnt/c/WSL-Cust/0-linux-kernel/kbuild.log
