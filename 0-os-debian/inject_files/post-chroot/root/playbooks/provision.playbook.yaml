@@ -31,6 +31,7 @@
         - mc
         - htop
         - man-db
+        - gpg-agent
 
   - name: Update root shell
     ansible.builtin.user:
