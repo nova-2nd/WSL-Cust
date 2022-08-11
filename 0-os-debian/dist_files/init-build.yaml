@@ -14,4 +14,4 @@
   - name: Download latest distrod image
     ansible.builtin.get_url:
       url: "https://github.com/nullpo-head/wsl-distrod/releases/latest/download/opt_distrod.tar.gz"
-      dest: /tmp/opt_distrod.tar.gz
+      dest: ../../blobs/
