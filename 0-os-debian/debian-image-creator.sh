@@ -5,12 +5,13 @@
 set -e
 
 BUILDIR=$(pwd)
+PARENTDIR=${PWD##*/}
 TMPDIR=$(mktemp -d)
 
 DIST="bullseye"
 
 create_x64_rootfs() {
-    rm -f $BUILDIR/blobs/install.tar.gz
+    rm -f $BUILDIR/../blobs/install.tar.gz
     # rm -f $BUILDIR/blobs/install.tar.xz
 	cd $TMPDIR
 
@@ -27,12 +28,23 @@ create_x64_rootfs() {
     sudo tar -xvf /tmp/opt_distrod.tar.gz -C $DIST/opt/distrod
 
 	cd $DIST
-    sudo tar --ignore-failed-read -czvf $TMPDIR/install.tar.gz *
-	# sudo tar --ignore-failed-read -cJvf $TMPDIR/install.tar.xz *
-	mv $TMPDIR/install.tar.gz $BUILDIR/blobs
+    sudo tar --ignore-failed-read -czvf $BUILDIR/../blobs/install.tar.gz *
+	# sudo tar --ignore-failed-read -cJvf $BUILDIR/../blobs/install.tar.xz *
+	# mv $TMPDIR/install.tar.gz $BUILDIR/blobs
     # mv $TMPDIR/install.tar.xz $BUILDIR/blobs
     sudo rm -rf $TMPDIR
 	cd $BUILDIR
 }
 
-create_x64_rootfs
+if [ -f .root-identifier ]; then
+    if [ $(cat .root-identifier) == $PARENTDIR ]; then
+        create_x64_rootfs
+    else
+        echo "Please change to the root of this script and execute it from there!"
+        exit 1
+    fi
+else
+    echo "Please change to the root of this script and execute it from there!"
+    exit 1
+fi
+
